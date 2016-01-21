@@ -1,0 +1,281 @@
+/***********************************************************************
+* Program: List Class
+*    Assignment 10
+*    Brother Ercanbrack, CS235
+* Author:
+*    Jose Ricaurte
+* Summary: 
+*   List Class and Node Class function definitions here!
+* 
+************************************************************************/
+
+#include "list.h"
+
+/**********************************************************************
+ * Node constructor
+ ***********************************************************************/
+Node::Node()
+{
+   data = 0;
+   next = NULL;
+}
+
+/**********************************************************************
+ * Node - getNext
+ ***********************************************************************/
+Node* Node::getNext()
+{
+   return next;
+}
+
+/**********************************************************************
+ * Node - getData
+ ***********************************************************************/
+int Node::getData()
+{
+   return data;
+}
+
+/**********************************************************************
+ * Node - setData
+ ***********************************************************************/
+void Node::setData(int item)
+{
+   data = item;
+}
+
+/**********************************************************************
+ * Node setNext
+ ***********************************************************************/
+void Node::setNext(Node* node)
+{
+   next = node;
+}
+
+
+/**********************************************************************
+ * List - default constructor
+ ***********************************************************************/
+List::List()
+{
+   numItems = 0;
+   firstNode = NULL;
+}
+
+/**********************************************************************
+ * List - destructor
+ ***********************************************************************/
+List::~List()
+{
+   Node* p1 = firstNode;
+   while (firstNode != NULL)
+   {
+      p1 = p1->getNext();
+      delete firstNode;
+      firstNode = p1;
+   }
+}
+
+/**********************************************************************
+ * List- copy constructor
+ ***********************************************************************/
+List::List(const List &listToCopy)
+{
+   numItems = listToCopy.numItems;
+   //if empty list
+   if (listToCopy.firstNode == NULL)
+   {
+      firstNode = NULL;
+      return;
+   }
+   
+   Node* rhs = listToCopy.firstNode;
+   Node* trav = new Node;
+   trav->setData(rhs->getData());
+   firstNode = trav;
+   rhs = rhs->getNext();
+   
+   while (rhs != NULL)
+   {
+      trav->setNext(new Node);
+      trav = trav->getNext();
+      trav->setData(rhs->getData());
+      rhs = rhs->getNext();
+   }
+}
+
+/**********************************************************************
+ * List - assignment operator overload
+ ***********************************************************************/
+List& List::operator = (const List &rightSide)
+{
+   if (this == &rightSide)
+      return *this;
+   else
+   {
+      numItems = rightSide.numItems;
+      this->~List(); // delete old list
+     
+      if (rightSide.firstNode == NULL) // if rightSide is empty, done here.
+         return *this;
+      
+      else    // traverse rightSide and copy its Nodes to calling object. 
+      {
+         Node* rhs = rightSide.firstNode;
+         Node* trav = new Node; 
+         trav->setData(rhs->getData()); // assign first node data
+         firstNode = trav; // firstNode is now set. Doesnt change after this
+         rhs = rhs->getNext();
+   
+         while (rhs != NULL) 
+         {
+            trav->setNext(new Node);
+            trav = trav->getNext();
+            trav->setData(rhs->getData());
+            rhs = rhs->getNext();
+         }
+      }
+      return *this;
+   }
+}
+
+/**********************************************************************
+ * List - insert
+ ***********************************************************************/
+void List::insert(int item, int pos) 
+{
+   // Check pos to see if it is negative
+   if (pos < 0)
+   {
+      cout << "Invalid position. List cannot have negative index.";
+      exit(1);
+   }
+   else 
+   {
+      Node* trav = firstNode; // traversal pointer
+      Node* temp = new Node;     //create node and fill with item
+      temp->setData(item);
+      
+      if (pos > numItems) // if pos > list size, set pos for tail insert
+         pos = numItems;
+      
+      if (pos == 0) // head insert
+      {
+         temp->setNext(firstNode);
+         firstNode = temp;
+      }
+      else if (pos == numItems) // tail insert
+      {
+         for (int i = 0; i < pos - 1; i++)
+            trav = trav->getNext();
+         
+         trav->setNext(temp);
+      }
+      else //any inserts in between nodes
+      {
+         for (int i = 0; i < pos - 1; i++)
+            trav = trav->getNext();
+         
+         temp->setNext(trav->getNext());
+         trav->setNext(temp);
+      }
+      numItems++;
+   }
+}
+
+/**********************************************************************
+ * List - remove
+ ***********************************************************************/
+void List::remove(int pos)
+{
+   if (pos < 0)
+      cout << "Index cannot be negative\n";
+   else if (empty())
+      cout << "Could not remove: Empty list!\n";
+   else
+   {
+      // If pos argument exceeds list size, set pos to last item in list
+      if (pos >= numItems)
+         pos = numItems - 1;
+      
+      Node* trav1 = firstNode;
+      Node* trav2;
+      if (pos == 0) // delete head
+      {
+         firstNode = firstNode->getNext();
+         delete trav1;
+      }
+      else
+      {
+         // traverse list and assign trav1 to one less than remove index.
+         for (int i = 0; i < pos - 1; i++)
+            trav1 = trav1->getNext();
+         
+         trav2 = trav1->getNext(); // trav2 will point to item at delete index
+         // link item before delete index to item after delete index
+         trav1->setNext(trav2->getNext()); 
+         delete trav2;
+      }
+      numItems--;
+   }
+}
+
+/**********************************************************************
+ * List - lookup
+ ***********************************************************************/
+int List::lookup(int item) const
+{
+  
+   Node* trav = firstNode;
+   int index = 0;
+   for (int i = 0; i < numItems; i++)
+   {
+      if (trav->getData() == item)
+         return index;
+      else
+      {
+         trav = trav->getNext();
+         index++;
+      }
+   }
+   return -1;  
+}
+
+/**********************************************************************
+ * List::getData - returns data at pos
+ ***********************************************************************/
+int List::getData(int pos) const
+{
+   if (pos < 0 || pos >= numItems)
+   {
+      cout << "Could not retrieve data: List does not contain that index";
+   }
+   else if (empty())
+      cout << "Could not retrieve data: Empty list\n";
+   else
+   {
+      Node* trav = firstNode;
+      for (int i = 0; i < pos; i++)
+         trav = trav->getNext();
+      return trav->getData();
+   }     
+}
+
+/**********************************************************************
+ * List - empty 
+ ***********************************************************************/
+int List::empty() const
+{
+   if (firstNode == NULL)
+      return 1;
+   else
+      return 0;
+}
+
+/**********************************************************************
+ * List - getNumItems
+ ***********************************************************************/
+int List::getNumItems() const
+{
+   return numItems;
+}
